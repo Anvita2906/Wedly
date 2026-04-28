@@ -11,7 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { HTMLInputTypeAttribute } from "react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -450,7 +450,6 @@ function UnderlineInput({
 
 export default function BudgetPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [browserSupabase] = useState(() => createClient());
   const budgetSupabase =
     browserSupabase as unknown as SupabaseClient<ExtendedDatabase>;
@@ -650,12 +649,16 @@ export default function BudgetPage() {
   );
 
   useEffect(() => {
-    const requestedTab = searchParams.get("tab");
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const requestedTab = new URLSearchParams(window.location.search).get("tab");
 
     if (requestedTab === "budget" || requestedTab === "shopping" || requestedTab === "guests") {
       setActiveTab(requestedTab);
     }
-  }, [searchParams]);
+  }, []);
 
   const runGuestMutation = async <T,>(
     payload: Record<string, unknown>,
