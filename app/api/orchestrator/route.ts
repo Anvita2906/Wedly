@@ -86,7 +86,7 @@ type ToolExecutionResult = {
   modelResult: string;
 };
 
-const tools = [
+const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   {
     function: {
       description:
@@ -297,7 +297,7 @@ const tools = [
     },
     type: "function",
   },
-] as const;
+];
 
 function buildSystemPrompt(profile: WeddingProfile | null) {
   return `You are Wedly, an AI wedding orchestrator. You have access to tools that let you take real actions in the app. When the user asks you to do something — add a task, update a vendor, mark something complete — USE THE TOOLS to actually do it, don't just talk about it. Always confirm what you did after taking action. The wedding details: partner1=${
@@ -353,7 +353,7 @@ async function executeToolCall(
       }
 
       const { error } = await supabase
-        .from("tasks")
+        .from("tasks" as never)
         .insert({
           description: "Added via AI Orchestrator",
           due_date: dueDate,
@@ -364,7 +364,7 @@ async function executeToolCall(
           status: "pending",
           title,
           user_id: userId,
-        } as Database["public"]["Tables"]["tasks"]["Insert"])
+        } as never)
         .select()
         .single();
 
@@ -392,7 +392,7 @@ async function executeToolCall(
       }
 
       const { data, error } = await supabase
-        .from("tasks")
+        .from("tasks" as never)
         .select("*")
         .eq("user_id", userId)
         .ilike("title", `%${taskTitle}%`)
@@ -413,8 +413,8 @@ async function executeToolCall(
       }
 
       const { error: updateError } = await supabase
-        .from("tasks")
-        .update({ status: "completed" } as Database["public"]["Tables"]["tasks"]["Update"])
+        .from("tasks" as never)
+        .update({ status: "completed" } as never)
         .eq("id", task.id);
 
       if (updateError) {
@@ -435,7 +435,7 @@ async function executeToolCall(
       }
 
       const { data, error } = await supabase
-        .from("tasks")
+        .from("tasks" as never)
         .select("*")
         .eq("user_id", userId)
         .ilike("title", `%${taskTitle}%`)
@@ -455,7 +455,10 @@ async function executeToolCall(
         };
       }
 
-      const { error: deleteError } = await supabase.from("tasks").delete().eq("id", task.id);
+      const { error: deleteError } = await supabase
+        .from("tasks" as never)
+        .delete()
+        .eq("id", task.id);
 
       if (deleteError) {
         throw deleteError;
@@ -608,7 +611,7 @@ async function executeToolCall(
     case "get_overdue_tasks": {
       const today = getTodayDateString();
       const { data, error } = await supabase
-        .from("tasks")
+        .from("tasks" as never)
         .select("*")
         .eq("user_id", userId)
         .eq("status", "pending")
@@ -673,7 +676,11 @@ async function executeToolCall(
 
     case "get_pending_tasks": {
       const phaseId = asString(args.phase_id);
-      let query = supabase.from("tasks").select("*").eq("user_id", userId).eq("status", "pending");
+      let query = supabase
+        .from("tasks" as never)
+        .select("*")
+        .eq("user_id", userId)
+        .eq("status", "pending");
 
       if (phaseId && phaseId !== "all") {
         query = query.eq("phase_id", phaseId);
@@ -779,6 +786,10 @@ export async function POST(request: Request) {
     const toolMessages: OpenAI.Chat.Completions.ChatCompletionToolMessageParam[] = [];
 
     for (const toolCall of toolCalls) {
+      if (toolCall.type !== "function") {
+        continue;
+      }
+
       const toolName = toolCall.function.name;
 
       try {

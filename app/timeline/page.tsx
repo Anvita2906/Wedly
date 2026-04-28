@@ -1506,7 +1506,6 @@ export default function TimelinePage() {
                   onStartEditing={handleStartEditing}
                   onToggleTaskStatus={handleToggleTaskStatus}
                   removingTaskIds={removingTaskIds}
-                  setEditingDueDateTaskId={setEditingDueDateTaskId}
                   setEditingTaskId={setEditingTaskId}
                   task={task}
                 />

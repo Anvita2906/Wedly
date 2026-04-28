@@ -1035,36 +1035,35 @@ export default function CommunicationAgentPage() {
   }, [manualRecipients, selectedChannel]);
 
   const manualDeliveries = useMemo<ManualDelivery[]>(() => {
-    return manualRecipients.flatMap((recipient) => {
+    const deliveries: ManualDelivery[] = [];
+
+    manualRecipients.forEach((recipient) => {
       if (selectedChannel === "Email" && recipient.contactType === "email") {
-        return [
-          {
-            channel: selectedChannel,
-            contact: recipient.contact,
-            name: recipient.name,
-            recipientType: mapRelationshipToRecipientType(recipient.relationship),
-            relationship: recipient.relationship,
-          },
-        ];
+        deliveries.push({
+          channel: "Email",
+          contact: recipient.contact,
+          name: recipient.name,
+          recipientType: mapRelationshipToRecipientType(recipient.relationship),
+          relationship: recipient.relationship,
+        });
+        return;
       }
 
       if (
         (selectedChannel === "WhatsApp" || selectedChannel === "SMS") &&
         recipient.contactType === "phone"
       ) {
-        return [
-          {
-            channel: selectedChannel,
-            contact: recipient.contact,
-            name: recipient.name,
-            recipientType: mapRelationshipToRecipientType(recipient.relationship),
-            relationship: recipient.relationship,
-          },
-        ];
+        deliveries.push({
+          channel: selectedChannel,
+          contact: recipient.contact,
+          name: recipient.name,
+          recipientType: mapRelationshipToRecipientType(recipient.relationship),
+          relationship: recipient.relationship,
+        });
       }
-
-      return [];
     });
+
+    return deliveries;
   }, [manualRecipients, selectedChannel]);
 
   const channelIndicators = useMemo(() => {

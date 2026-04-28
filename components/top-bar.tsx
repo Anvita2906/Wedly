@@ -264,8 +264,8 @@ export function TopBar() {
     };
 
     const { error } = await supabase
-      .from("wedding_profiles")
-      .update(payload)
+      .from("wedding_profiles" as never)
+      .update(payload as never)
       .eq("user_id", user.id);
 
     if (error) {
